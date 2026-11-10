@@ -1,0 +1,79 @@
+# MongoDB, dealers/reviews API and sentiment analyzer for the Kubernetes deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {run: mongo-db}
+  template:
+    metadata:
+      labels: {run: mongo-db}
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:7
+        ports: [{containerPort: 27017}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-db
+spec:
+  selector: {run: mongo-db}
+  ports: [{port: 27017, targetPort: 27017}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {run: nodeapi}
+  template:
+    metadata:
+      labels: {run: nodeapi}
+    spec:
+      containers:
+      - name: nodeapi
+        image: us.icr.io/your-name-space/nodeapp:latest
+        imagePullPolicy: Always
+        env:
+        - {name: MONGO_URL, value: "mongodb://mongo-db:27017/"}
+        ports: [{containerPort: 3030}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeapi
+spec:
+  selector: {run: nodeapi}
+  ports: [{port: 3030, targetPort: 3030}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentianalyzer
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {run: sentianalyzer}
+  template:
+    metadata:
+      labels: {run: sentianalyzer}
+    spec:
+      containers:
+      - name: sentianalyzer
+        image: us.icr.io/your-name-space/senti_analyzer:latest
+        imagePullPolicy: Always
+        ports: [{containerPort: 5000}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentianalyzer
+spec:
+  selector: {run: sentianalyzer}
+  ports: [{port: 5000, targetPort: 5000}]

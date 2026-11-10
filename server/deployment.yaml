@@ -23,6 +23,11 @@ spec:
       - image: us.icr.io/your-name-space/dealership:latest
         imagePullPolicy: Always
         name: dealership
+        env:
+        - name: backend_url
+          value: "http://nodeapi:3030"
+        - name: sentiment_analyzer_url
+          value: "http://sentianalyzer:5000/"
         ports:
         - containerPort: 8000
           protocol: TCP
